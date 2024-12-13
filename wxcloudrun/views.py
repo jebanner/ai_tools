@@ -3,51 +3,49 @@ import logging
 from datetime import datetime
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from wxcloudrun.models import Counters, User
 
 logger = logging.getLogger('log')
 
-def index(request, _):
+def index(request):
     """获取主页"""
     return render(request, 'index.html')
 
-def counter(request, _):
-    """统一处理 /api/count 的请求"""
-    rsp = JsonResponse({'code': -1, 'errorMsg': '请求方式错误'}, json_dumps_params={'ensure_ascii': False})
-    
-    if request.method == 'GET':
-        rsp = get_count()
-    elif request.method == 'POST':
-        rsp = handle_post_request(request)
-    
-    logger.info('response result: {}'.format(rsp.content.decode('utf-8')))
-    return rsp
-
-def handle_post_request(request):
-    """处理 POST 请求"""
+@csrf_exempt
+@require_http_methods(['POST', 'GET'])
+def counter(request):
+    """处理计数器请求"""
     try:
-        body_unicode = request.body.decode('utf-8')
-        body = json.loads(body_unicode)
-        logger.info('request body: {}'.format(body))
-
-        if 'action' not in body:
-            return JsonResponse({'code': -1, 'errorMsg': '缺少action参数'}, json_dumps_params={'ensure_ascii': False})
-
-        # 根据 action 分发到不同的处理函数
-        action_handlers = {
-            'inc': handle_counter_inc,
-            'clear': handle_counter_clear,
-            'user_register': handle_user_register,
-            'user_login': handle_user_login,
-            'get_user_info': handle_get_user_info,
-            'update_user_info': handle_update_user_info
-        }
-
-        handler = action_handlers.get(body['action'])
-        if handler:
-            return handler(body)
+        if request.method == 'GET':
+            rsp = get_count()
         else:
-            return JsonResponse({'code': -1, 'errorMsg': 'action参数错误'}, json_dumps_params={'ensure_ascii': False})
+            # 解析请求体
+            body = json.loads(request.body.decode('utf-8'))
+            logger.info('Request body: {}'.format(body))
+
+            if 'action' not in body:
+                return JsonResponse({'code': -1, 'errorMsg': '缺少action参数'}, json_dumps_params={'ensure_ascii': False})
+
+            # 根据action分发请求
+            handlers = {
+                'inc': handle_counter_inc,
+                'clear': handle_counter_clear,
+                'user_register': handle_user_register,
+                'user_login': handle_user_login,
+                'get_user_info': handle_get_user_info,
+                'update_user_info': handle_update_user_info
+            }
+
+            action = body.get('action')
+            if action not in handlers:
+                return JsonResponse({'code': -1, 'errorMsg': 'action参数错误'}, json_dumps_params={'ensure_ascii': False})
+
+            rsp = handlers[action](body)
+
+        logger.info('Response: {}'.format(rsp.content.decode('utf-8')))
+        return rsp
 
     except json.JSONDecodeError:
         logger.error('Invalid JSON data')
@@ -83,7 +81,7 @@ def handle_counter_clear(body):
         data = Counters.objects.get(id=1)
         data.delete()
     except Counters.DoesNotExist:
-        logger.info('record not exist')
+        logger.info('Record not exist')
     return JsonResponse({'code': 0, 'data': 0}, json_dumps_params={'ensure_ascii': False})
 
 def handle_user_register(body):
