@@ -12,7 +12,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     SSL_CERT_DIR=/etc/ssl/certs \
     REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
     STATIC_URL=/static/ \
-    STATIC_ROOT=/app/staticfiles
+    STATIC_ROOT=/app/staticfiles \
+    PYTHONIOENCODING=utf-8 \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
@@ -20,6 +23,7 @@ RUN apt-get update && apt-get install -y \
     gcc \
     python3-dev \
     ca-certificates \
+    dos2unix \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
@@ -30,29 +34,30 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 复制应用代码
 COPY . .
 
-# 清理缓存文件
-RUN find . -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true \
-    && find . -type f -name "*.pyc" -delete
+# 转换文件格式并清理缓存文件
+RUN find . -type f -name "*.py" -exec dos2unix {} \; && \
+    find . -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true && \
+    find . -type f -name "*.pyc" -delete
 
 # 创建并配置目录
 RUN mkdir -p /app/cert /app/staticfiles /usr/local/share/ca-certificates \
     && chmod -R 755 /app/cert /app/staticfiles \
     && chown -R root:root /app/cert /app/staticfiles
 
-# 收集静态文件
-ENV PYTHONIOENCODING=utf-8 \
-    LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8
-
 # 检查环境编码设置
 RUN python -c "import sys; print('Default encoding:', sys.getdefaultencoding())" && \
     python -c "import locale; print('Locale:', locale.getpreferredencoding())"
 
-# 检查Python文件编码
-RUN find . -type f -name "*.py" -exec file {} \; | grep -v "ASCII text" || true && \
-    find . -type f -name "*.py" -exec python -c "open('{}', 'rb').read().decode('utf-8')" \; && \
-    echo "All Python files are valid UTF-8"
+# 检查并修复 Python 文件编码
+RUN for f in $(find . -type f -name "*.py"); do \
+        if ! python -c "open('$f', 'rb').read().decode('utf-8')"; then \
+            echo "Converting $f to UTF-8" && \
+            iconv -f ISO-8859-1 -t UTF-8 "$f" > "$f.tmp" && \
+            mv "$f.tmp" "$f"; \
+        fi \
+    done
 
+# 收集静态文件
 RUN python manage.py collectstatic --noinput --clear
 
 EXPOSE 80
