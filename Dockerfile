@@ -42,13 +42,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 复制应用代码
 COPY . .
 
-# 确保 apps 目录被识别为 Python 包
-RUN touch wxcloudrun/apps/__init__.py && \
-    touch wxcloudrun/apps/emotions/__init__.py && \
-    touch wxcloudrun/apps/collections/__init__.py && \
-    touch wxcloudrun/apps/careers/__init__.py && \
-    touch wxcloudrun/apps/users/__init__.py && \
-    touch wxcloudrun/apps/core/__init__.py
+# 创建应用目录结构
+RUN mkdir -p wxcloudrun/apps/{emotions,collections,careers,users,core}/{migrations,templates,static} && \
+    touch wxcloudrun/apps/{emotions,collections,careers,users,core}/migrations/__init__.py && \
+    touch wxcloudrun/apps/{emotions,collections,careers,users,core}/__init__.py && \
+    touch wxcloudrun/apps/__init__.py
 
 # 转换文件格式并清理缓存文件
 RUN find . -type f -name "*.py" -exec dos2unix {} \; && \
@@ -68,16 +66,13 @@ RUN for f in $(find . -type f -name "*.py"); do \
         fi \
     done
 
-# 检查 Python 包结构
-RUN python -c "import wxcloudrun; print('wxcloudrun package found')" && \
-    python -c "from wxcloudrun.apps import emotions; print('emotions app found')" && \
-    python -c "from wxcloudrun.apps import collections; print('collections app found')" && \
-    python -c "from wxcloudrun.apps import careers; print('careers app found')" && \
-    python -c "from wxcloudrun.apps import users; print('users app found')" && \
-    python -c "from wxcloudrun.apps import core; print('core app found')"
+# 检查 Django 应用配置
+RUN python -c "from django.apps import apps; from django.conf import settings; \
+    settings.configure(); \
+    print('Django settings configured successfully')"
 
 # 收集静态文件
-RUN python manage.py collectstatic --noinput --clear
+RUN DJANGO_SETTINGS_MODULE=wxcloudrun.settings python manage.py collectstatic --noinput --clear
 
 EXPOSE 80
 

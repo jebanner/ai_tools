@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 class CareersConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.careers'
-    verbose_name = '职业发展' 
+    name = 'wxcloudrun.apps.careers'
+    verbose_name = '职业规划' 
