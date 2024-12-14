@@ -1,11 +1,8 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import UserViewSet, AIUsageStatsViewSet
-
-router = DefaultRouter()
-router.register('users', UserViewSet)
-router.register('ai-stats', AIUsageStatsViewSet, basename='ai-stats')
+from django.urls import path
+from .views import UserViewSet
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('register', UserViewSet.as_view({'post': 'register'}), name='user-register'),
+    path('login', UserViewSet.as_view({'post': 'login'}), name='user-login'),
+    path('info', UserViewSet.as_view({'get': 'retrieve', 'put': 'update'}), name='user-info'),
 ] 

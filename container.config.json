@@ -6,11 +6,21 @@
   "mem": 2,
   "policyType": "cpu",
   "policyThreshold": 60,
-  "envParams": {},
+  "envParams": {
+    "MYSQL_USERNAME": "root",
+    "MYSQL_PASSWORD": "123456",
+    "MYSQL_ADDRESS": "localhost:3306",
+    "MYSQL_DATABASE": "django_demo",
+    "DJANGO_SETTINGS_MODULE": "wxcloudrun.settings",
+    "STATIC_URL": "/static/",
+    "STATIC_ROOT": "/app/static",
+    "DEBUG": "False",
+    "ALLOWED_HOSTS": "*"
+  },
   "customLogs": "stdout",
   "initialDelaySeconds": 30,
-  "dataBaseName":"django_demo",
-  "executeSQLs":[
+  "dataBaseName": "django_demo",
+  "executeSQLs": [
     "CREATE DATABASE IF NOT EXISTS django_demo;"
   ]
 } 
