@@ -19,6 +19,9 @@
   "dataBaseName": "wxcloudrun",
   "executeSQLs": [
     "CREATE DATABASE IF NOT EXISTS wxcloudrun;",
-    "USE wxcloudrun;"
+    "USE wxcloudrun;",
+    "CREATE TABLE IF NOT EXISTS users (id INT AUTO_INCREMENT PRIMARY KEY, username VARCHAR(150), password VARCHAR(128), last_login DATETIME, is_superuser BOOLEAN, first_name VARCHAR(150), last_name VARCHAR(150), email VARCHAR(254), is_staff BOOLEAN, is_active BOOLEAN, date_joined DATETIME, nickname VARCHAR(50), avatar VARCHAR(200), openid VARCHAR(100) UNIQUE, phone VARCHAR(11), created_at DATETIME, updated_at DATETIME);",
+    "CREATE TABLE IF NOT EXISTS emotion_records (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, emotion_type VARCHAR(50), emotion_level INT, description TEXT, ai_analysis TEXT, created_at DATETIME, updated_at DATETIME, FOREIGN KEY (user_id) REFERENCES users(id));",
+    "CREATE TABLE IF NOT EXISTS ai_usage_stats (id INT AUTO_INCREMENT PRIMARY KEY, user_id INT, api_name VARCHAR(128), call_date DATE, call_count INT, success_count INT, error_count INT, created_at DATETIME, updated_at DATETIME, FOREIGN KEY (user_id) REFERENCES users(id), UNIQUE KEY unique_user_api_date (user_id, api_name, call_date));"
   ]
 } 
