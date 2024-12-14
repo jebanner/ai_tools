@@ -10,6 +10,10 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tencent.com/g' /etc/apk/repositorie
     python3 \
     py3-pip \
     tzdata \
+    mariadb-connector-c-dev \
+    gcc \
+    musl-dev \
+    python3-dev \
     && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
     && echo Asia/Shanghai > /etc/timezone \
     && rm -rf /var/cache/apk/*
