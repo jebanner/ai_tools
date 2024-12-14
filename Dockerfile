@@ -17,6 +17,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tencent.com/g' /etc/apk/repositorie
     python3-dev \
     musl-dev \
     linux-headers \
+    dos2unix \
     && rm -rf /var/cache/apk/*
 
 # 设置工作目录
@@ -28,7 +29,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPATH=/app \
     DJANGO_SETTINGS_MODULE=wxcloudrun.settings \
     STATIC_URL=/static/ \
-    STATIC_ROOT=/app/staticfiles
+    STATIC_ROOT=/app/staticfiles \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
 
 # 创建必要的目录
 RUN mkdir -p /app/cert /app/staticfiles \
@@ -46,6 +49,10 @@ RUN pip install --user -r requirements.txt
 # 复制应用代码
 COPY . .
 
+# 修复文件编码和行尾符
+RUN find . -type f -name "*.py" -exec dos2unix {} \; \
+    && find . -type f -name "*.py" -exec python3 -c "import sys; content = open(sys.argv[1], 'r', encoding='utf-8-sig').read(); open(sys.argv[1], 'w', encoding='utf-8').write(content)" {} \;
+
 # 创建应用目录结构
 RUN mkdir -p wxcloudrun/apps && \
     mkdir -p wxcloudrun/apps/emotions/migrations && \
@@ -62,21 +69,17 @@ RUN mkdir -p wxcloudrun/apps && \
     mkdir -p wxcloudrun/apps/users/static && \
     mkdir -p wxcloudrun/apps/core/migrations && \
     mkdir -p wxcloudrun/apps/core/templates && \
-    mkdir -p wxcloudrun/apps/core/static && \
-    touch wxcloudrun/apps/__init__.py && \
-    touch wxcloudrun/apps/emotions/__init__.py && \
-    touch wxcloudrun/apps/emotions/migrations/__init__.py && \
-    touch wxcloudrun/apps/collections/__init__.py && \
-    touch wxcloudrun/apps/collections/migrations/__init__.py && \
-    touch wxcloudrun/apps/careers/__init__.py && \
-    touch wxcloudrun/apps/careers/migrations/__init__.py && \
-    touch wxcloudrun/apps/users/__init__.py && \
-    touch wxcloudrun/apps/users/migrations/__init__.py && \
-    touch wxcloudrun/apps/core/__init__.py && \
-    touch wxcloudrun/apps/core/migrations/__init__.py
+    mkdir -p wxcloudrun/apps/core/static
 
-# 收集静态文件
-RUN python3 manage.py collectstatic --noinput --clear
+# 创建初始化文件
+RUN for app in emotions collections careers users core; do \
+    touch wxcloudrun/apps/$app/__init__.py; \
+    touch wxcloudrun/apps/$app/migrations/__init__.py; \
+    done && \
+    touch wxcloudrun/apps/__init__.py
+
+# 收集静态文件（使用 python -W ignore 忽略警告）
+RUN python3 -W ignore manage.py collectstatic --noinput --clear
 
 # 暴露端口
 EXPOSE 80
