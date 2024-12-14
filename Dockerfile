@@ -42,10 +42,32 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 复制应用代码
 COPY . .
 
-# 创建应用目录结构
-RUN mkdir -p wxcloudrun/apps/{emotions,collections,careers,users,core}/{migrations,templates,static} && \
-    touch wxcloudrun/apps/{emotions,collections,careers,users,core}/migrations/__init__.py && \
-    touch wxcloudrun/apps/{emotions,collections,careers,users,core}/__init__.py && \
+# 创建应用目录结��
+RUN mkdir -p wxcloudrun/apps/emotions/migrations && \
+    mkdir -p wxcloudrun/apps/emotions/templates && \
+    mkdir -p wxcloudrun/apps/emotions/static && \
+    mkdir -p wxcloudrun/apps/collections/migrations && \
+    mkdir -p wxcloudrun/apps/collections/templates && \
+    mkdir -p wxcloudrun/apps/collections/static && \
+    mkdir -p wxcloudrun/apps/careers/migrations && \
+    mkdir -p wxcloudrun/apps/careers/templates && \
+    mkdir -p wxcloudrun/apps/careers/static && \
+    mkdir -p wxcloudrun/apps/users/migrations && \
+    mkdir -p wxcloudrun/apps/users/templates && \
+    mkdir -p wxcloudrun/apps/users/static && \
+    mkdir -p wxcloudrun/apps/core/migrations && \
+    mkdir -p wxcloudrun/apps/core/templates && \
+    mkdir -p wxcloudrun/apps/core/static && \
+    touch wxcloudrun/apps/emotions/migrations/__init__.py && \
+    touch wxcloudrun/apps/collections/migrations/__init__.py && \
+    touch wxcloudrun/apps/careers/migrations/__init__.py && \
+    touch wxcloudrun/apps/users/migrations/__init__.py && \
+    touch wxcloudrun/apps/core/migrations/__init__.py && \
+    touch wxcloudrun/apps/emotions/__init__.py && \
+    touch wxcloudrun/apps/collections/__init__.py && \
+    touch wxcloudrun/apps/careers/__init__.py && \
+    touch wxcloudrun/apps/users/__init__.py && \
+    touch wxcloudrun/apps/core/__init__.py && \
     touch wxcloudrun/apps/__init__.py
 
 # 转换文件格式并清理缓存文件
