@@ -10,7 +10,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     GUNICORN_THREADS=4 \
     GUNICORN_TIMEOUT=60 \
     SSL_CERT_DIR=/etc/ssl/certs \
-    REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+    REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt \
+    STATIC_URL=/static/ \
+    STATIC_ROOT=/app/staticfiles
 
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
@@ -32,14 +34,26 @@ COPY . .
 RUN find . -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true \
     && find . -type f -name "*.pyc" -delete
 
-# 配置证书目录
-RUN mkdir -p /app/cert \
-    && chmod -R 755 /app/cert \
-    && chown -R root:root /app/cert \
-    && mkdir -p /usr/local/share/ca-certificates
+# 创建并配置目录
+RUN mkdir -p /app/cert /app/staticfiles /usr/local/share/ca-certificates \
+    && chmod -R 755 /app/cert /app/staticfiles \
+    && chown -R root:root /app/cert /app/staticfiles
 
 # 收集静态文件
-RUN python manage.py collectstatic --noinput
+ENV PYTHONIOENCODING=utf-8 \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
+
+# 检查环境编码设置
+RUN python -c "import sys; print('Default encoding:', sys.getdefaultencoding())" && \
+    python -c "import locale; print('Locale:', locale.getpreferredencoding())"
+
+# 检查Python文件编码
+RUN find . -type f -name "*.py" -exec file {} \; | grep -v "ASCII text" || true && \
+    find . -type f -name "*.py" -exec python -c "open('{}', 'rb').read().decode('utf-8')" \; && \
+    echo "All Python files are valid UTF-8"
+
+RUN python manage.py collectstatic --noinput --clear
 
 EXPOSE 80
 

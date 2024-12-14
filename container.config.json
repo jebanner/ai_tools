@@ -1,54 +1,19 @@
 {
   "containerPort": 80,
-  "minNum": 1,
-  "maxNum": 10,
+  "minNum": 0,
+  "maxNum": 50,
   "cpu": 1,
-  "mem": 4,
+  "mem": 2,
   "policyType": "cpu",
-  "policyThreshold": 80,
+  "policyThreshold": 60,
   "envParams": {
-    "MYSQL_USERNAME": "root",
-    "MYSQL_PASSWORD": "123456",
-    "MYSQL_ADDRESS": "10.0.0.1:3306",
+    "MYSQL_USERNAME": "",
+    "MYSQL_PASSWORD": "",
+    "MYSQL_ADDRESS": "",
     "MYSQL_DATABASE": "django_demo",
-    "DJANGO_SETTINGS_MODULE": "wxcloudrun.settings",
     "STATIC_URL": "/static/",
-    "STATIC_ROOT": "/app/static",
-    "DEBUG": "False",
-    "ALLOWED_HOSTS": ".tencentcloudrun.com",
-    "GUNICORN_WORKERS": "2",
-    "GUNICORN_THREADS": "4",
-    "GUNICORN_TIMEOUT": "60",
-    "DNS_RESOLVER": "169.254.0.1",
-    "SSL_CERT_DIR": "/etc/ssl/certs",
-    "REQUESTS_CA_BUNDLE": "/etc/ssl/certs/ca-certificates.crt"
+    "STATIC_ROOT": "/app/staticfiles",
+    "DEBUG": "False"
   },
-  "customLogs": "stdout",
-  "initialDelaySeconds": 60,
-  "readinessProbe": {
-    "httpGet": {
-      "path": "/health/",
-      "port": 80
-    },
-    "initialDelaySeconds": 60,
-    "periodSeconds": 10,
-    "timeoutSeconds": 5,
-    "successThreshold": 1,
-    "failureThreshold": 3
-  },
-  "livenessProbe": {
-    "httpGet": {
-      "path": "/health/",
-      "port": 80
-    },
-    "initialDelaySeconds": 60,
-    "periodSeconds": 30,
-    "timeoutSeconds": 5,
-    "successThreshold": 1,
-    "failureThreshold": 3
-  },
-  "dataBaseName": "django_demo",
-  "executeSQLs": [
-    "CREATE DATABASE IF NOT EXISTS django_demo;"
-  ]
+  "customLogs": "stdout"
 } 
