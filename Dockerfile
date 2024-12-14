@@ -18,6 +18,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.tencent.com/g' /etc/apk/repositorie
     musl-dev \
     linux-headers \
     dos2unix \
+    curl \
     && rm -rf /var/cache/apk/*
 
 # 设置工作目录
@@ -44,7 +45,8 @@ RUN pip config set global.index-url http://mirrors.cloud.tencent.com/pypi/simple
 
 # 复制requirements.txt并安装依赖
 COPY requirements.txt .
-RUN pip install --user -r requirements.txt
+RUN pip install --user -r requirements.txt \
+    && pip install gunicorn==20.1.0
 
 # 复制应用代码
 COPY . .
@@ -78,11 +80,17 @@ RUN for app in emotions collections careers users core; do \
     done && \
     touch wxcloudrun/apps/__init__.py
 
-# 收集静态文件（使用 python -W ignore 忽略警告）
-RUN python3 -W ignore manage.py collectstatic --noinput --clear
+# 执行数据库迁移和收集静态文件
+RUN python3 manage.py migrate --noinput && \
+    python3 manage.py collectstatic --noinput --clear
 
 # 暴露端口
 EXPOSE 80
 
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:80/health || exit 1
+
 # 启动命令
-CMD ["python3", "manage.py", "runserver", "0.0.0.0:80"]
+ENTRYPOINT ["gunicorn"]
+CMD ["--bind", "0.0.0.0:80", "--workers", "4", "--threads", "2", "--timeout", "60", "--access-logfile", "-", "--error-logfile", "-", "wxcloudrun.wsgi:application"]
