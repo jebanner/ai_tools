@@ -1,19 +1,24 @@
 {
   "containerPort": 80,
   "minNum": 0,
-  "maxNum": 50,
+  "maxNum": 5,
   "cpu": 1,
   "mem": 2,
   "policyType": "cpu",
   "policyThreshold": 60,
   "envParams": {
-    "MYSQL_USERNAME": "",
-    "MYSQL_PASSWORD": "",
-    "MYSQL_ADDRESS": "",
-    "MYSQL_DATABASE": "django_demo",
-    "STATIC_URL": "/static/",
-    "STATIC_ROOT": "/app/staticfiles",
-    "DEBUG": "False"
+    "MYSQL_DATABASE": "wxcloudrun",
+    "MYSQL_USERNAME": "root",
+    "MYSQL_PASSWORD": "enxvHM6U",
+    "MYSQL_ADDRESS": "10.10.108.30:3306",
+    "COS_BUCKET": "7072-prod-3gkedaxif5929d32-1331412554",
+    "COS_REGION": "ap-shanghai"
   },
-  "customLogs": "stdout"
+  "customLogs": "stdout",
+  "initialDelaySeconds": 2,
+  "dataBaseName": "wxcloudrun",
+  "executeSQLs": [
+    "CREATE DATABASE IF NOT EXISTS wxcloudrun;",
+    "USE wxcloudrun;"
+  ]
 } 
