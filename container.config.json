@@ -8,5 +8,9 @@
   "policyThreshold": 60,
   "envParams": {},
   "customLogs": "stdout",
-  "initialDelaySeconds": 2
+  "initialDelaySeconds": 30,
+  "dataBaseName":"django_demo",
+  "executeSQLs":[
+    "CREATE DATABASE IF NOT EXISTS django_demo;"
+  ]
 } 
