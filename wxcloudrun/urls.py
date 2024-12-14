@@ -22,4 +22,8 @@ urlpatterns = [
     path('api/count', views.counter, name='counter'),
     # 获取主页
     path('', views.index),
+    # 用户相关接口
+    path('api/user/register', views.user_register, name='user_register'),
+    path('api/user/login', views.user_login, name='user_login'),
+    path('api/user/info', views.user_info, name='user_info'),
 ]
