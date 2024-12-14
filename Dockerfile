@@ -15,7 +15,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     STATIC_ROOT=/app/staticfiles \
     PYTHONIOENCODING=utf-8 \
     LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8
+    LC_ALL=C.UTF-8 \
+    PYTHONPATH=/app
 
 # 安装系统依赖
 RUN apt-get update && apt-get install -y \
@@ -27,22 +28,32 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# 安装Python依赖
+# 创建必要的目录
+RUN mkdir -p /app/cert /app/staticfiles /usr/local/share/ca-certificates \
+    && chmod -R 755 /app/cert /app/staticfiles \
+    && chown -R root:root /app/cert /app/staticfiles
+
+# 复制 requirements.txt
 COPY requirements.txt .
+
+# 安装Python依赖
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 复制应用代码
 COPY . .
 
+# 确保 apps 目录被识别为 Python 包
+RUN touch wxcloudrun/apps/__init__.py && \
+    touch wxcloudrun/apps/emotions/__init__.py && \
+    touch wxcloudrun/apps/collections/__init__.py && \
+    touch wxcloudrun/apps/careers/__init__.py && \
+    touch wxcloudrun/apps/users/__init__.py && \
+    touch wxcloudrun/apps/core/__init__.py
+
 # 转换文件格式并清理缓存文件
 RUN find . -type f -name "*.py" -exec dos2unix {} \; && \
     find . -type d -name "__pycache__" -exec rm -r {} + 2>/dev/null || true && \
     find . -type f -name "*.pyc" -delete
-
-# 创建并配置目录
-RUN mkdir -p /app/cert /app/staticfiles /usr/local/share/ca-certificates \
-    && chmod -R 755 /app/cert /app/staticfiles \
-    && chown -R root:root /app/cert /app/staticfiles
 
 # 检查环境编码设置
 RUN python -c "import sys; print('Default encoding:', sys.getdefaultencoding())" && \
@@ -56,6 +67,14 @@ RUN for f in $(find . -type f -name "*.py"); do \
             mv "$f.tmp" "$f"; \
         fi \
     done
+
+# 检查 Python 包结构
+RUN python -c "import wxcloudrun; print('wxcloudrun package found')" && \
+    python -c "from wxcloudrun.apps import emotions; print('emotions app found')" && \
+    python -c "from wxcloudrun.apps import collections; print('collections app found')" && \
+    python -c "from wxcloudrun.apps import careers; print('careers app found')" && \
+    python -c "from wxcloudrun.apps import users; print('users app found')" && \
+    python -c "from wxcloudrun.apps import core; print('core app found')"
 
 # 收集静态文件
 RUN python manage.py collectstatic --noinput --clear
